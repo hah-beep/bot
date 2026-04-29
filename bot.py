@@ -190,24 +190,15 @@ async def play(ctx, *, query: str):
     async with ctx.typing():
         loop = asyncio.get_event_loop()
         try:
-            opts = {k: v for k, v in YDL_OPTS.items() if k != 'format'}
-            opts['quiet'] = False
+            opts = {**YDL_OPTS, 'format': 'bestaudio/best'}
             with yt_dlp.YoutubeDL(opts) as ydl:
                 search = query if query.startswith('http') else f'ytsearch:{query}'
                 info = await loop.run_in_executor(None, lambda: ydl.extract_info(search, download=False))
                 if 'entries' in info:
                     info = info['entries'][0]
+                url = info['url']
                 title = info.get('title', 'Unknown')
-                # Manually pick best audio-only stream, fall back to any stream with audio
-                formats = info.get('formats', [])
-                print(f'Available formats: {[(f.get("format_id"), f.get("ext"), f.get("acodec"), f.get("vcodec"), f.get("abr")) for f in formats]}')
-                audio_only = [f for f in formats if f.get('vcodec') in ('none', None) and f.get('acodec') not in ('none', None) and f.get('url')]
-                any_audio = [f for f in formats if f.get('acodec') not in ('none', None) and f.get('url')]
-                candidates = audio_only or any_audio
-                if not candidates:
-                    await ctx.send('No playable audio found for that video.')
-                    return
-                url = max(candidates, key=lambda f: f.get('abr') or f.get('tbr') or 0)['url']
+                print(f'Playing: {title} | format: {info.get("ext")} | acodec: {info.get("acodec")}')
         except Exception as e:
             await ctx.send(f'Could not find that: {e}')
             return
