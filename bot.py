@@ -187,12 +187,21 @@ async def play(ctx, *, query: str):
     async with ctx.typing():
         loop = asyncio.get_event_loop()
         try:
-            with yt_dlp.YoutubeDL(YDL_OPTS) as ydl:
+            opts = {**YDL_OPTS, 'format': None}
+            with yt_dlp.YoutubeDL(opts) as ydl:
                 search = query if query.startswith('http') else f'ytsearch:{query}'
                 info = await loop.run_in_executor(None, lambda: ydl.extract_info(search, download=False))
                 if 'entries' in info:
                     info = info['entries'][0]
-                url = info['url']
+                # Pick best audio-only format, fall back to any format with audio
+                formats = info.get('formats', [])
+                audio = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none' and f.get('url')]
+                if not audio:
+                    audio = [f for f in formats if f.get('acodec') != 'none' and f.get('url')]
+                if audio:
+                    url = max(audio, key=lambda f: f.get('abr') or f.get('tbr') or 0)['url']
+                else:
+                    url = info['url']
                 title = info.get('title', 'Unknown')
         except Exception as e:
             await ctx.send(f'Could not find that: {e}')
