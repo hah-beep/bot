@@ -32,7 +32,7 @@ bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 _leaving = set()
 
 YDL_OPTS = {
-    'format': 'bestaudio/best',
+    'format': 'bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio/best',
     'noplaylist': True,
     'quiet': True,
     'no_warnings': True,
