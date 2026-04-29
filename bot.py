@@ -18,10 +18,13 @@ CHANNELS_FILE = 'channels.json'
 _cookie_file = None
 _yt_cookies = os.getenv('YOUTUBE_COOKIES')
 if _yt_cookies:
+    # Railway may store newlines as literal \n — convert them back
+    _yt_cookies = _yt_cookies.replace('\\n', '\n')
     _tf = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
     _tf.write(_yt_cookies)
     _tf.close()
     _cookie_file = _tf.name
+    print(f'Cookie file written: {_cookie_file} ({len(_yt_cookies)} bytes)')
 
 intents = discord.Intents.default()
 intents.message_content = True
