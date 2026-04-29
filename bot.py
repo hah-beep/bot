@@ -28,7 +28,7 @@ YDL_OPTS = {
     'no_warnings': True,
     'default_search': 'ytsearch',
     'source_address': '0.0.0.0',
-    'extractor_args': {'youtube': {'player_client': ['ios']}},
+    'extractor_args': {'youtube': {'player_client': ['tv_embedded']}},
 }
 
 FFMPEG_OPTS = {
