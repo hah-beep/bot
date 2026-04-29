@@ -3,6 +3,7 @@ from discord.ext import commands
 import asyncio
 import json
 import os
+import tempfile
 from collections import deque
 from dotenv import load_dotenv
 import yt_dlp
@@ -12,6 +13,15 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 PREFIX = os.getenv('PREFIX', '!')
 CHANNELS_FILE = 'channels.json'
+
+# Write YouTube cookies from env var to a temp file so yt-dlp can use them
+_cookie_file = None
+_yt_cookies = os.getenv('YOUTUBE_COOKIES')
+if _yt_cookies:
+    _tf = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+    _tf.write(_yt_cookies)
+    _tf.close()
+    _cookie_file = _tf.name
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -28,7 +38,7 @@ YDL_OPTS = {
     'no_warnings': True,
     'default_search': 'ytsearch',
     'source_address': '0.0.0.0',
-    'extractor_args': {'youtube': {'player_client': ['tv_embedded']}},
+    **(({'cookiefile': _cookie_file}) if _cookie_file else {}),
 }
 
 FFMPEG_OPTS = {
